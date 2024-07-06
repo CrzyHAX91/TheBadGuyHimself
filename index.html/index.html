@@ -9,34 +9,30 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/style.css">
 
     <!-- Firebase SDK -->
     <script type="module">
-        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
         import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js";
         import { getFirestore, collection, addDoc, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
         import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
 
-        // Your web app's Firebase configuration
         const firebaseConfig = {
-        apiKey: "AIzaSyDBPPIVCdMrU9xLd3LVK5vLN5V4joGoEFo",
-        authDomain: "thebadguyhimself-c01cf.firebaseapp.com",
-        projectId: "thebadguyhimself-c01cf",
-        storageBucket: "thebadguyhimself-c01cf.appspot.com",
-        messagingSenderId: "126608259087",
-        appId: "1:126608259087:web:2ae3674ba8c9a71cfc8b7a",
-        measurementId: "G-E633EWVMCP"
-      };
+            apiKey: "AIzaSyDBPPIVCdMrU9xLd3LVK5vLN5V4joGoEFo",
+            authDomain: "thebadguyhimself-c01cf.firebaseapp.com",
+            projectId: "thebadguyhimself-c01cf",
+            storageBucket: "thebadguyhimself-c01cf.appspot.com",
+            messagingSenderId: "126608259087",
+            appId: "1:126608259087:web:2ae3674ba8c9a71cfc8b7a",
+            measurementId: "G-E633EWVMCP"
+        };
 
-        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const analytics = getAnalytics(app);
         const db = getFirestore(app);
         const auth = getAuth();
 
-        // Handle contact form submission
         const contactForm = document.getElementById('contact-form');
         contactForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -56,7 +52,6 @@
             }
         });
 
-        // Handle track upload
         const uploadForm = document.getElementById('upload-form');
         uploadForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -66,7 +61,7 @@
             try {
                 await addDoc(collection(db, 'tracks'), {
                     title: trackTitle,
-                    file: trackFile.name // Store just the file name, actual file upload needs Firebase Storage
+                    file: trackFile.name 
                 });
                 alert('Track uploaded successfully!');
                 uploadForm.reset();
@@ -76,7 +71,6 @@
             }
         });
 
-        // Handle login form submission
         const loginForm = document.getElementById('login-form');
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -87,14 +81,12 @@
                 await signInWithEmailAndPassword(auth, email, password);
                 alert('Login successful!');
                 loginForm.reset();
-                // Redirect to a protected page or display a success message
             } catch (error) {
                 console.error('Error logging in: ', error);
                 alert('Error logging in. Please check your credentials and try again.');
             }
         });
 
-        // Fetch and display about information
         async function fetchAboutInfo() {
             try {
                 const aboutDoc = await getDoc(doc(db, 'about', 'info'));
@@ -110,7 +102,6 @@
         }
         fetchAboutInfo();
 
-        // Fetch and display music mixes
         async function fetchMusicMixes() {
             try {
                 const musicSnapshot = await getDocs(collection(db, 'music'));
@@ -126,7 +117,7 @@
                                 <h2 class="card-title">${mix.title}</h2>
                                 <p>${mix.description}</p>
                                 <div class="card-actions justify-end">
-                                    <button class="btn btn-primary">Listen Now</button>
+                                    <button class="btn btn-primary play-btn" data-file="${mix.file}">Play</button>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +130,6 @@
         }
         fetchMusicMixes();
 
-        // Fetch and display events
         async function fetchEvents() {
             try {
                 const eventsSnapshot = await getDocs(collection(db, 'events'));
@@ -166,6 +156,15 @@
             }
         }
         fetchEvents();
+
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('play-btn')) {
+                const file = e.target.getAttribute('data-file');
+                const audioPlayer = document.getElementById('audio-player');
+                audioPlayer.src = `your_storage_url/${file}`;
+                audioPlayer.play();
+            }
+        });
     </script>
 </head>
 <body class="bg-gray-900 text-white font-mono overflow-x-hidden">
@@ -249,6 +248,12 @@
                 <div class="swiper-pagination"></div>
             </div>
 
+            <!-- Audio Player -->
+            <div class="flex justify-center mt-10">
+                <audio id="audio-player" controls class="w-full max-w-lg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
         </div>
     </section>
 
