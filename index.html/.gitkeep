@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ_NAME - Techno & Hardcore Sets</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@2.51.4/dist/full.css" rel="stylesheet" type="text/css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <link rel="stylesheet" href="css/style.css"> 
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-analytics.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDBPPIVCdMrU9xLd3LVK5vLN5V4joGoEFo",
+            authDomain: "thebadguyhimself-c01cf.firebaseapp.com",
+            projectId: "thebadguyhimself-c01cf",
+            storageBucket: "thebadguyhimself-c01cf.appspot.com",
+            messagingSenderId: "126608259087",
+            appId: "1:126608259087:web:2ae3674ba8c9a71cfc8b7a",
+            measurementId: "G-E633EWVMCP"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const db = getFirestore(app);
+        const auth = getAuth();
+
+        // Handle contact form submission
+        const contactForm = document.getElementById('contact-form');
+        contactForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+
+            try {
+                await addDoc(collection(db, 'contacts'), {
+                    name, email, message
+                });
+                alert('Message sent successfully!');
+                contactForm.reset();
+            } catch (error) {
+                console.error('Error sending message: ', error);
+                alert('Error sending message. Please try again later.');
+            }
+        });
+
+        // Handle track upload
+        const uploadForm = document.getElementById('upload-form');
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const trackTitle = document.getElementById('track-title').value;
+            const trackFile = document.getElementById('track-file').files[0];
+
+            try {
+                const trackRef = await addDoc(collection(db, 'tracks'), {
+                    title: trackTitle,
+                    file: trackFile.name // Store just the file name, actual file upload needs Firebase Storage
+                });
+                alert('Track uploaded successfully!');
+                uploadForm.reset();
+            } catch (error) {
+                console.error('Error uploading track: ', error);
+                alert('Error uploading track. Please try again later.');
+            }
+        });
+
+        // Handle login form submission
+        const loginForm = document.getElementById('login-form');
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                alert('Login successful!');
+                loginForm.reset();
+                // Redirect to a protected page or display a success message
+            } catch (error) {
+                console.error('Error logging in: ', error);
+                alert('Error logging in. Please check your credentials and try again.');
+            }
+        });
+
+        // Fetch and display about information
+        async function fetchAboutInfo() {
+            try {
+                const aboutDoc = await getDoc(doc(db, 'about', 'info'));
+                if (aboutDoc.exists()) {
+                    const aboutText = aboutDoc.data().text;
+                    document.getElementById('about-text').textContent = aboutText;
+                } else {
+                    console.error('About information not found.');
+                }
+            } catch (error) {
+                console.error('Error fetching about information: ', error);
+            }
+        }
+        fetchAboutInfo();
+
+        // Fetch and display music mixes
+        async function fetchMusicMixes() {
+            try {
+                const musicSnapshot = await getDocs(collection(db, 'music'));
+                const musicList = document.getElementById('music-list');
+                musicSnapshot.forEach(doc => {
+                    const mix = doc.data();
+                    const mixElement = document.createElement('div');
+                    mixElement.classList.add('swiper-slide');
+                    mixElement.innerHTML = `
+                        <div class="card bg-gray-800 shadow-xl">
+                            <figure><img src="images/music1.jpg" alt="${mix.title}" /></figure>
+                            <div class="card-body">
+                                <h2 class="card-title">${mix.title}</h2>
+                                <p>${mix.description}</p>
+                                <div class="card-actions justify-end">
+                                    <button class="btn btn-primary play-btn" data-file="${mix.file}">Play</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    musicList.appendChild(mixElement);
+                });
+            } catch (error) {
+                console.error('Error fetching music mixes: ', error);
+            }
+        }
+        fetchMusicMixes();
+
+        // Fetch and display events
+        async function fetchEvents() {
+            try {
+                const eventsSnapshot = await getDocs(collection(db, 'events'));
+                const eventList = document.getElementById('event-list');
+                eventsSnapshot.forEach(doc => {
+                    const event = doc.data();
+                    const eventElement = document.createElement('div');
+                    eventElement.classList.add('card', 'bg-gray-900', 'shadow-xl');
+                    eventElement.innerHTML = `
+                        <figure><img src="images/event1.jpg" alt="${event.title}" /></figure>
+                        <div class="card-body">
+                            <h2 class="card-title">${event.title}</h2>
+                            <p>Location: ${event.location}</p>
+                            <p>Date: ${event.date}</p>
+                            <div class="card-actions justify-end">
+                                <button class="btn btn-primary">Tickets</button>
+                            </div>
+                        </div>
+                    `;
+                    eventList.appendChild(eventElement);
+                });
+            } catch (error) {
+                console.error('Error fetching events: ', error);
+            }
+        }
+        fetchEvents();
+
+        // Fetch and display news articles about techno and hardcore
+        async function fetchNews() {
+            const apiKey = 'YOUR_NEWS_API_KEY'; // Replace with your News API key
+            const url = `https://newsapi.org/v2/everything?q=techno+hardcore&apiKey=${apiKey}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const newsList = document.getElementById('news-list');
+                data.articles.forEach(article => {
+                    const articleElement = document.createElement('div');
+                    articleElement.classList.add('swiper-slide');
+                    articleElement.innerHTML = `
+                        <div class="card bg-gray-800 shadow-xl">
+                            <figure><img src="${article.urlToImage}" alt="${article.title}" /></figure>
+                            <div class="card-body">
+                                <h2 class="card-title">${article.title}</h2>
+                                <p>${article.description}</p>
+                                <div class="card-actions justify-end">
+                                    <a href="${article.url}" target="_blank" class="btn btn-primary">Read More</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    newsList.appendChild(articleElement);
+                });
+            } catch (error) {
+                console.error('Error fetching news articles: ', error);
+            }
+        }
+        fetchNews();
+
+        // Handle play button click to play selected track
+        document.addEventListener('click', (e) => {
+            if (e.target && e.target.classList.contains('play-btn')) {
+                const file = e.target.getAttribute('data-file');
+                const audioPlayer = document.getElementById('audio-player');
+                audioPlayer.src = `your_storage_url/${file}`;
+                audioPlayer.play();
+            }
+        });
+    </script>
+</head>
+<body class="bg-gray-900 text-white font-mono overflow-x-hidden">
+
+    <header class="sticky top-0 z-50">
+        <nav class="bg-gray-900 bg-opacity-80 backdrop-blur-lg py-4">
+            <div class="container mx-auto flex flex-wrap justify-between items-center">
+                <a href="#" class="text-2xl font-bold tracking-wider">DJ_NAME</a>
+                <div class="hidden w-full md:block md:w-auto" id="navbar-default">
+                    <ul class="flex flex-col p-4 mt-4 border border-gray-100 rounded-lg bg-gray-800 md:flex-row md:space-x-8 md:mt-0 md:text-sm md:font-medium md:border-0 md:bg-gray-900 dark:bg-gray-800 md:dark:bg-gray-900 dark:border-gray-700">
+                        <li>
+                            <a href="#about" class="block py-2 md:p-0 text-white hover:text-blue-500" aria-current="page">About</a>
+                        </li>
+                        <li>
+                            <a href="#music" class="block py-2 md:p-0 text-white hover:text-blue-500">Music</a>
+                        </li>
+                        <li>
+                            <a href="#events" class="block py-2 md:p-0 text-white hover:text-blue-500">Events</a>
+                        </li>
+                        <li>
+                            <a href="#news" class="block py-2 md:p-0 text-white hover:text-blue-500">News</a>
+                        </li>
+                        <li>
+                            <a href="#contact" class="block py-2 md:p-0 text-white hover:text-blue-500">Contact</a>
+                        </li>
+                        <li>
+                            <a href="#upload" class="block py-2 md:p-0 text-white hover:text-blue-500">Upload</a>
+                        </li>
+                        <li>
+                            <a href="#login" class="block py-2 md:p-0 text-white hover:text-blue-500">Login</a>
+                        </li>
+                        <li>
+                            <a href="#profile" class="block py-2 md:p-0 text-white hover:text-blue-500" id="profile-link" style="display: none;">Profile</a>
+                        </li>
+                        <li>
+                            <button class="btn btn-primary" id="logout-btn" style="display: none;">Logout</button>
+                        </li>
+                    </ul>
+                </div>
+                <div class="flex space-x-4 md:hidden">
+                    <a href="#" class="text-gray-400 hover:text-blue-500">
+                        <i class="fab fa-facebook-f fa-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-500">
+                        <i class="fab fa-twitter fa-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-500">
+                        <i class="fab fa-instagram fa-lg"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-blue-500">
+                        <i class="fab fa-soundcloud fa-lg"></i>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <section id="hero" class="relative h-screen">
+        <div class="hero-content text-center flex flex-col justify-center items-center h-full">
+            <h1 class="text-6xl md:text-8xl font-extrabold mb-4 glitch" data-text="DJ_NAME">DJ_NAME</h1>
+            <p class="text-lg md:text-2xl font-light mb-8">Techno & Hardcore Sets</p>
+            <a href="#music" class="btn btn-outline btn-primary rounded-full px-8 py-3 text-lg">Listen Now</a>
+        </div>
+        <div class="absolute inset-0 w-full h-full bg-cover bg-center opacity-50" style="background-image: url('images/hero.jpg');"></div>
+    </section>
+
+    <section id="about" class="py-20 bg-gradient-to-r from-gray-900 to-gray-800">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <img src="images/dj-image.jpg" alt="DJ_NAME" class="rounded-lg shadow-lg transform transition-transform hover:scale-110 duration-500">
+                </div>
+                <div class="md:w-1/2 md:pl-16">
+                    <h2 class="text-3xl font-bold mb-4">About DJ_NAME</h2>
+                    <p class="text-gray-400" id="about-text"></p>
+                    <a href="#events" class="btn btn-primary mt-6">Book Now</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="music" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">Latest Mixes</h2>
+            
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper" id="music-list">
+                    <!-- Music mixes will be dynamically added here -->
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+
+            <!-- Audio Player -->
+            <div class="flex justify-center mt-10">
+                <audio id="audio-player" controls class="w-full max-w-lg">
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </div>
+    </section>
+
+    <section id="events" class="py-20 bg-gradient-to-r from-gray-800 to-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">Upcoming Events</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="event-list">
+                <!-- Events will be dynamically added here -->
+            </div>
+        </div>
+    </section>
+
+    <section id="news" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">Latest News</h2>
+            
+            <div class="swiper mySwiper">
+                <div class="swiper-wrapper" id="news-list">
+                    <!-- News articles will be dynamically added here -->
+                </div>
+                <div class="swiper-pagination"></div>
+            </div>
+
+        </div>
+    </section>
+
+    <section id="contact" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">Contact</h2>
+            <form class="w-full max-w-lg mx-auto" id="contact-form">
+                <div class="mb-4">
+                    <label for="name" class="block text-gray-400 text-sm font-bold mb-2">Name</label>
+                    <input type="text" id="name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your Name" required>
+                </div>
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-400 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your Email" required>
+                </div>
+                <div class="mb-4">
+                    <label for="message" class="block text-gray-400 text-sm font-bold mb-2">Message</label>
+                    <textarea id="message" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your Message" rows="5" required></textarea>
+                </div>
+                <div class="flex items-center justify-center">
+                    <button class="btn btn-primary" type="submit">Send</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section id="upload" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">Upload Tracks</h2>
+            <form class="w-full max-w-lg mx-auto" id="upload-form">
+                <div class="mb-4">
+                    <label for="track-title" class="block text-gray-400 text-sm font-bold mb-2">Track Title</label>
+                    <input type="text" id="track-title" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Track Title" required>
+                </div>
+                <div class="mb-4">
+                    <label for="track-file" class="block text-gray-400 text-sm font-bold mb-2">Upload Track</label>
+                    <input type="file" id="track-file" class="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" required>
+                </div>
+                <div class="flex items-center justify-center">
+                    <button class="btn btn-primary" type="submit">Upload</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section id="login" class="py-20 bg-gray-900">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">Login</h2>
+            <form class="w-full max-w-lg mx-auto" id="login-form">
+                <div class="mb-4">
+                    <label for="email" class="block text-gray-400 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="login-email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your Email" required>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="block text-gray-400 text-sm font-bold mb-2">Password</label>
+                    <input type="password" id="login-password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Your Password" required>
+                </div>
+                <div class="flex items-center justify-center">
+                    <button class="btn btn-primary" type="submit">Login</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <section id="profile" class="py-20 bg-gray-900" style="display: none;">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold mb-8 text-center">Your Profile</h2>
+            <div class="w-full max-w-lg mx-auto">
+                <div class="mb-4">
+                    <label for="profile-name" class="block text-gray-400 text-sm font-bold mb-2">Name</label>
+                    <input type="text" id="profile-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" disabled>
+                </div>
+                <div class="mb-4">
+                    <label for="profile-email" class="block text-gray-400 text-sm font-bold mb-2">Email</label>
+                    <input type="email" id="profile-email" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" disabled>
+                </div>
+                <div class="flex items-center justify-center">
+                    <button class="btn btn-primary" id="update-profile-btn">Update Profile</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-gray-800 py-6">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-500">&copy; 2023 DJ_NAME. All rights reserved.</p>
+            <div class="flex justify-center mt-4 space-x-6">
+                <a href="#" class="text-gray-400 hover:text-blue-500">
+                    <i class="fab fa-facebook-f fa-lg"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-blue-500">
+                    <i class="fab fa-twitter fa-lg"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-blue-500">
+                    <i class="fab fa-instagram fa-lg"></i>
+                </a>
+                <a href="#" class="text-gray-400 hover:text-blue-500">
+                    <i class="fab fa-soundcloud fa-lg"></i>
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- External JS Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/scrollreveal@4.0.9/dist/scrollreveal.min.js"></script>
+    <script>
+        // Initialize Swiper
+        var swiper = new Swiper(".mySwiper", {
+            slidesPerView: 1,
+            spaceBetween: 30,
+            loop: true,
+            pagination: {
+                el: ".swiper-pagination",
+                clickable: true,
+            },
+            breakpoints: {
+                768: {
+                    slidesPerView: 2,
+                },
+                1024: {
+                    slidesPerView: 3,
+                },
+            },
+        });
+
+        // ScrollReveal Animations
+        ScrollReveal({
+            reset: true,
+            distance: '60px',
+            duration: 1500,
+            delay: 400
+        });
+
+        ScrollReveal().reveal('#hero h1, #hero p', { delay: 500, origin: 'left' });
+        ScrollReveal().reveal('#hero a', { delay: 600, origin: 'bottom' });
+        ScrollReveal().reveal('#about .col-left', { delay: 600, origin: 'left' });
+        ScrollReveal().reveal('#about .col-right', { delay: 900, origin: 'right' });
+        ScrollReveal().reveal('#music .heading', { delay: 600, origin: 'top' });
+        ScrollReveal().reveal('#music .card', { delay: 700, origin: 'bottom', interval: 200 });
+        ScrollReveal().reveal('#events .heading', { delay: 600, origin: 'top' });
+        ScrollReveal().reveal('#events .card', { delay: 700, origin: 'bottom', interval: 200 });
+        ScrollReveal().reveal('#contact .heading', { delay: 600, origin: 'top' });
+        ScrollReveal().reveal('#contact form', { delay: 700, origin: 'bottom' });
+
+        // GSAP Hero Text Animation
+        gsap.from(".glitch", {
+            y: 15,
+            repeat: -1,
+            yoyo: true,
+            ease: "power2.inOut",
+            duration: 1.5,
+            stagger: {
+                each: 0.1,
+                from: "random"
+            }
+        });
+    </script>
+</body>
+</html>
