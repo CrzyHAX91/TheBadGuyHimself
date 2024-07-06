@@ -1,8 +1,8 @@
 /* Custom Typography */
 @font-face {
     font-family: 'RaveFont';
-    src: url('fonts/your-rave-font.woff2') format('woff2'),
-         url('fonts/your-rave-font.woff') format('woff');
+    src: url('../fonts/your-rave-font.woff2') format('woff2'),
+         url('../fonts/your-rave-font.woff') format('woff');
     font-weight: normal;
     font-style: normal;
 }
@@ -15,11 +15,11 @@ body {
 
 /* Glitch Effect on Hero Title */
 .glitch {
-    color: #fff;
+    color: #fff; 
     position: relative;
 }
 
-.glitch::before,
+.glitch::before, 
 .glitch::after {
     content: attr(data-text);
     position: absolute;
@@ -30,7 +30,7 @@ body {
 }
 
 .glitch::before {
-    clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+    clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%); 
     animation: glitch-anim 3s infinite linear alternate-reverse;
 }
 
@@ -46,7 +46,7 @@ body {
     20% { transform: translate(-5px, -5px); }
     30% { transform: translate(5px, -5px); }
     40% { transform: translate(5px, 5px); }
-    50% { transform: translate(0); }
+    50% { transform: translate(0); } 
     100% { transform: translate(0); }
 }
 
@@ -68,11 +68,10 @@ body {
     background-attachment: fixed;
     background-position: center;
     background-repeat: no-repeat;
-    background-size: cover;
+    background-size: cover; 
 }
 
-/* Adjust based on your parallax image height */
-.parallax-1 {
+.parallax-1 { 
     min-height: 400px;
 }
 
@@ -80,17 +79,19 @@ body {
     min-height: 400px;
 }
 
+/* ... more parallax styles */
+
 /* Other Styles */
 .btn-primary {
     background-color: transparent;
-    border: 2px solid #0f0;
+    border: 2px solid #0f0; 
     color: #0f0;
-    transition: all 0.3s ease;
+    transition: all 0.3s ease; 
 }
 
 .btn-primary:hover {
     background-color: #0f0;
-    color: #111;
+    color: #111; 
 }
 
 .card {
